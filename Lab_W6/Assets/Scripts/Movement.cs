@@ -4,19 +4,18 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
-    [SerializeField] float mainThrust = 100;
-    [SerializeField] float rotationThrust = 1f;
-    Rigidbody rb;
-    AudioSource audioSource;
+    [SerializeField] float mainThrust = 100f; // Thrust speed
+    [SerializeField] float rotationThrust = 1f; // Rotation speed
 
-    // Start is called before the first frame update
+    private Rigidbody rb;
+    private AudioSource audioSource;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         ProcessThrust();
@@ -27,7 +26,10 @@ public class Movement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Space))
         {
+            // Smoothly increase velocity towards the target speed
             rb.AddRelativeForce(Vector3.up * mainThrust * Time.deltaTime);
+
+            // Play engine sound when thrusting
             if (!audioSource.isPlaying)
             {
                 audioSource.Play();
@@ -35,27 +37,34 @@ public class Movement : MonoBehaviour
         }
         else
         {
+            // Stop the engine sound when no thrust
             audioSource.Stop();
         }
     }
 
     void ProcessRotation()
     {
+        float rotationThisFrame = rotationThrust * Time.deltaTime;
+
         if (Input.GetKey(KeyCode.A))
         {
-            ApplyRotation(rotationThrust);
+            ApplyRotation(rotationThisFrame);
         }
-
         else if (Input.GetKey(KeyCode.D))
         {
-            ApplyRotation(-rotationThrust);
+            ApplyRotation(-rotationThisFrame);
         }
     }
 
     void ApplyRotation(float rotationThisFrame)
     {
-        rb.freezeRotation = true; // freezing rotation so we can manually rotate
-        transform.Rotate(Vector3.forward * rotationThisFrame * Time.deltaTime);
-        rb.freezeRotation = false; // unfreezing rotation so the physics system can take over
+        // Temporarily disable physics-driven rotation
+        rb.freezeRotation = true;
+
+        // Smoothly rotate the spaceship
+        transform.Rotate(Vector3.forward * rotationThisFrame);
+
+        // Re-enable physics-driven rotation
+        rb.freezeRotation = false;
     }
 }
